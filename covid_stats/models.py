@@ -14,11 +14,13 @@ class CovidStats:
     def delete_record(self, idx: int):
         self.data = self.data.drop(idx).reset_index(drop=True)
 
-    def filter_data(self, column, keyword):
-        return self.data[self.data[column].astype(str).str.contains(keyword, case=False, na=False)]
+    def get_page(self, page=1, page_size=20):
+        start = (page - 1) * page_size
+        end = start + page_size
+        return self.data.iloc[start:end]
 
-    def sort_data(self, column, ascending=True):
-        self.data = self.data.sort_values(by=column, ascending=ascending).reset_index(drop=True)
+    def get_total_pages(self, page_size=20):
+        return (len(self.data) + page_size - 1) // page_size
 
     def get_all(self):
         return self.data
