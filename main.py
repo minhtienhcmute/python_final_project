@@ -75,20 +75,20 @@ class CovidApp:
         notebook.add(tab_filter, text="Lọc dữ liệu")
         
         #sắp xếp dữ liệu
-        search_sort_frame = tk.Frame(tab_manage, bg="white")
-        search_sort_frame.pack(fill=tk.X, padx=20, pady=5)
-        tk.Label(search_sort_frame, text="Tìm kiếm:", font=("Segoe UI", 12), bg="white").pack(side=tk.LEFT)
-        self.search_entry = tk.Entry(search_sort_frame, font=("Segoe UI", 12), width=20)
-        self.search_entry.pack(side=tk.LEFT, padx=5)
-        tk.Button(search_sort_frame, text="Tìm", font=("Segoe UI", 12), command=self.search_records).pack(side=tk.LEFT, padx=5)
+        # search_sort_frame = tk.Frame(tab_manage, bg="white")
+        # search_sort_frame.pack(fill=tk.X, padx=20, pady=5)
+        # tk.Label(search_sort_frame, text="Tìm kiếm:", font=("Segoe UI", 12), bg="white").pack(side=tk.LEFT)
+        # self.search_entry = tk.Entry(search_sort_frame, font=("Segoe UI", 12), width=20)
+        # self.search_entry.pack(side=tk.LEFT, padx=5)
+        # tk.Button(search_sort_frame, text="Tìm", font=("Segoe UI", 12), command=self.search_records).pack(side=tk.LEFT, padx=5)
 
-        tk.Label(search_sort_frame, text="Sắp xếp theo:", font=("Segoe UI", 12), bg="white").pack(side=tk.LEFT, padx=10)
-        self.sort_column = tk.StringVar()
-        sort_options = list(self.df.columns)
-        self.sort_column.set(sort_options[0])
-        tk.OptionMenu(search_sort_frame, self.sort_column, *sort_options).pack(side=tk.LEFT)
-        tk.Button(search_sort_frame, text="Tăng", font=("Segoe UI", 12), command=lambda: self.sort_records(True)).pack(side=tk.LEFT, padx=2)
-        tk.Button(search_sort_frame, text="Giảm", font=("Segoe UI", 12), command=lambda: self.sort_records(False)).pack(side=tk.LEFT, padx=2)
+        # tk.Label(search_sort_frame, text="Sắp xếp theo:", font=("Segoe UI", 12), bg="white").pack(side=tk.LEFT, padx=10)
+        # self.sort_column = tk.StringVar()
+        # sort_options = list(self.df.columns)
+        # self.sort_column.set(sort_options[0])
+        # tk.OptionMenu(search_sort_frame, self.sort_column, *sort_options).pack(side=tk.LEFT)
+        # tk.Button(search_sort_frame, text="Tăng", font=("Segoe UI", 12), command=lambda: self.sort_records(True)).pack(side=tk.LEFT, padx=2)
+        # tk.Button(search_sort_frame, text="Giảm", font=("Segoe UI", 12), command=lambda: self.sort_records(False)).pack(side=tk.LEFT, padx=2)
     
         # Rename columns in DataFrame
         self.df.rename(columns=column_map, inplace=True)
