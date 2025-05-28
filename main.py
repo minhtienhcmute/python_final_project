@@ -2,8 +2,9 @@ import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 from covid_stats.data_loader import DataLoader
 from covid_stats.models import CovidStats
+from covid_stats.views.AddRecord import  RecordModal
 
-DATA_FILE = "datasets/country_wise_latest.csv"
+DATA_FILE = "datasets/covid_19_clean_complete.csv"
 PAGE_SIZE = 20
 
 class CovidApp:
@@ -12,29 +13,26 @@ class CovidApp:
         self.root.title("COVID Data Manager (Paging & CRUD)")
         self.root.geometry("1200x600")
 
+        # load data từ file CSV
         self.loader = DataLoader(DATA_FILE)
         self.df = self.loader.load_data()
 
-        # Rename columns to Vietnamese
+        # Đổi tên các cột trong DataFrame sang tiếng Việt
         column_map = {
-            "Country/Region": "Quốc gia",
-            "Confirmed": "Ca xác nhận",
-            "Deaths": "Tử vong",
-            "Recovered": "Bình phục",
-            "Active": "Đang điều trị",
-            "New cases": "Ca mới",
-            "New deaths": "Tử vong mới",
-            "New recovered": "Bình phục mới",
-            "Deaths / 100 Cases": "Tử vong/100 ca",
-            "Recovered / 100 Cases": "Bình phục/100 ca",
-            "Deaths / 100 Recovered": "Tử vong/100 bình phục",
-            "Confirmed last week": "Ca xác nhận tuần trước",
-            "1 week change": "Thay đổi 1 tuần",
-            "1 week % increase": "Tỉ lệ tăng 1 tuần",
-            "WHO Region": "Khu vực WHO"
+            'Province/State': 'Tỉnh/Bang',
+            'Country/Region': 'Quốc gia/Vùng lãnh thổ',
+            'Lat': 'Vĩ độ',
+            'Long': 'Kinh độ',
+            'Date': 'Ngày',
+            'Confirmed': 'Ca xác nhận',
+            'Deaths': 'Tử vong',
+            'Recovered': 'Hồi phục',
+            'Active': 'Đang điều trị',
+            'WHO Region': 'Khu vực WHO'
         }
         
-        # Create Notebook for Tabs
+        # tạo giao diện chính
+        self.root.configure(bg="white")
         notebook = ttk.Notebook(root)
         notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -49,26 +47,7 @@ class CovidApp:
         input = tk.Frame(tab_manage, bg="white")
         input.pack(pady=10, fill=tk.X, padx=20)
         lbl_width = 12
-        entry_width = 25
-        # Tạo dict để lưu Entry widgets
-        self.entries = {}
-        # Labels and Entries
-        def add_entry(row, col, label, col_name):
-            tk.Label(input, text=label, font=("Segoe UI", 12), bg="white").grid(row=row, column=col*2, sticky="e", pady=5, padx=5)
-            entry = tk.Entry(input, font=("Segoe UI", 12), width=entry_width)
-            entry.grid(row=row, column=col*2+1, pady=5, padx=5)
-            self.entries[col_name] = entry
-        add_entry(0, 0, "Quốc gia:", "Quốc gia")
-        add_entry(0, 1, "Ca xác nhận:", "Ca xác nhận")
-        add_entry(1, 0, "Tử vong:", "Tử vong")
-        add_entry(1, 1, "Bình phục:", "Bình phục")
-        add_entry(2, 0, "Ca mới:", "Ca mới")
-        add_entry(2, 1, "Tử vong mới:", "Tử vong mới")
-        add_entry(0, 2, "Tử vong/100 ca:", "Tử vong/100 ca")
-        add_entry(2, 2, "Bình phục/100 ca:", "Bình phục/100 ca")
-        add_entry(1, 2, "Tử vong/100 bình:", "Tử vong/100 bình phục")
-        add_entry(4, 0, "Đang điều trị:", "Đang điều trị")
-        add_entry(4, 1, "Bình phục mới:", "Bình phục mới")
+       
 
      
         tab_filter = tk.Frame(notebook, bg="white")
@@ -103,25 +82,38 @@ class CovidApp:
             self.table.column(col, width=110)
         self.table.pack(fill=tk.BOTH, expand=True)
 
-    
-        btn_frame = tk.Frame(tab_manage)
-        btn_frame.pack(fill=tk.X, pady=4)
+
 
         # Action Buttons
-            
         btn_frame = tk.Frame(tab_manage)
         btn_frame.pack(fill=tk.X, pady=4)
 
-        tk.Button(btn_frame, text="Trang trước", command=self.prev_page, bg="purple", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_frame, text="Trang sau", command=self.next_page, bg="purple", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        
-        self.page_label = tk.Label(btn_frame, text=f"Trang {self.page}/{self.total_pages}", font=("Segoe UI", 12, "bold"))
+        # Nút chuyển trang
+        self.page_label = tk.Label(btn_frame, text="", font=("Segoe UI", 12, "bold"))
         self.page_label.pack(side=tk.LEFT, padx=6)
+        # Nút đi tới đầu trang
+        tk.Button(btn_frame, text="|<", command=self.first_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
+        # Nút trang trước
+        tk.Button(btn_frame, text="<", command=self.prev_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
+        # Nút trang sau
+        tk.Button(btn_frame, text=">", command=self.next_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
+        # Nút đi tới cuối trang
+        tk.Button(btn_frame, text=">|", command=self.last_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
+        
+        # Ô nhập số trang và nút chuyển trang
+        tk.Label(btn_frame, text="Tới trang:", font=("Segoe UI", 12)).pack(side=tk.LEFT, padx=2)
+        self.goto_entry = tk.Entry(btn_frame, width=5, font=("Segoe UI", 12))
+        self.goto_entry.pack(side=tk.LEFT)
+        tk.Button(btn_frame, text="Đi", command=self.goto_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
 
-        tk.Button(btn_frame, text="Thêm", command=self.add_record, bg="yellow", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_frame, text="Sửa", command=self.edit_record, bg="blue", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_frame, text="Xóa", command=self.delete_record, bg="red", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_frame, text="Lưu", command=self.save_data, bg="green", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
+        # Thêm label tổng số bản ghi
+        self.total_label = tk.Label(btn_frame, text="", font=("Segoe UI", 12))
+        self.total_label.pack(side=tk.LEFT, padx=10)
+
+        tk.Button(btn_frame, text="Thêm", command=self.add_record, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
+        tk.Button(btn_frame, text="Sửa", command=self.edit_record, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
+        tk.Button(btn_frame, text="Xóa", command=self.delete_record, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
+        tk.Button(btn_frame, text="Lưu", command=self.save_data, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
 
 
         self.refresh_table()
@@ -134,6 +126,17 @@ class CovidApp:
             self.table.insert("", tk.END, values=list(row))
         self.total_pages = self.model.get_total_pages(PAGE_SIZE)
         self.page_label.config(text=f"Trang {self.page}/{self.total_pages}")
+        # Cập nhật tổng số bản ghi
+        total_records = len(self.model.get_all())
+        self.total_label.config(text=f"Tổng số bản ghi: {total_records}")
+
+    def first_page(self):
+        self.page = 1
+        self.refresh_table()
+
+    def last_page(self):
+        self.page = self.total_pages
+        self.refresh_table()
 
     def prev_page(self):
         if self.page > 1:
@@ -145,17 +148,22 @@ class CovidApp:
             self.page += 1
             self.refresh_table()
 
+    def goto_page(self):
+        try:
+            page = int(self.goto_entry.get())
+            if 1 <= page <= self.total_pages:
+                self.page = page
+                self.refresh_table()
+            else:
+                messagebox.showwarning("Trang", f"Chỉ số trang phải từ 1 đến {self.total_pages}")
+        except ValueError:
+            messagebox.showwarning("Trang", "Vui lòng nhập số trang hợp lệ.")
+
     def add_record(self):
-        # Lấy dữ liệu từ các Entry
-        new_rec = {}
-        for col in self.df.columns:
-            val = self.entries[col].get() if col in self.entries else ""
-            new_rec[col] = val
-        self.model.add_record(new_rec)
-        self.refresh_table()
-        # Xóa dữ liệu trong Entry sau khi thêm
-        for entry in self.entries.values():
-            entry.delete(0, tk.END)
+        def on_save(record):
+            self.model.add_record(record)
+            self.refresh_table()
+        RecordModal(self.root, self.df.columns, on_save)
 
     def edit_record(self):
         selected = self.table.selection()
@@ -165,11 +173,10 @@ class CovidApp:
         idx_in_page = self.table.index(selected[0])
         idx = (self.page - 1) * PAGE_SIZE + idx_in_page
         current = self.model.get_all().iloc[idx].to_dict()
-        for col in self.df.columns:
-            val = simpledialog.askstring("Sửa", f"{col}:", initialvalue=current[col], parent=self.root)
-            current[col] = val
-        self.model.update_record(idx, current)
-        self.refresh_table()
+        def on_save(record):
+            self.model.update_record(idx, record)
+            self.refresh_table()
+        RecordModal(self.root, self.df.columns, on_save, init_values=current)
 
     def delete_record(self):
         selected = self.table.selection()
