@@ -32,22 +32,6 @@ class CovidApp:
             'WHO Region': 'Khu vực WHO'
         }
         
-        # tạo giao diện chính
-        self.root.configure(bg="white")
-        notebook = ttk.Notebook(root)
-        notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-
-        # Tab 1: Manage Cases
-        tab_manage = tk.Frame(notebook, bg="white")
-        notebook.add(tab_manage, text="Quản lý ca bệnh")
-        title = tk.Label(tab_manage, text="Quản Lý Số Ca Mắc COVID-19", font=("Segoe UI", 22, "bold"),
-                         bg="white", fg="purple")
-        title.pack(pady=15)
-
-
-        tab_filter = tk.Frame(notebook, bg="white")
-        notebook.add(tab_filter, text="Lọc dữ liệu")
-        
         #sắp xếp dữ liệu
         # search_sort_frame = tk.Frame(tab_manage, bg="white")
         # search_sort_frame.pack(fill=tk.X, padx=20, pady=5)
@@ -70,12 +54,11 @@ class CovidApp:
         self.page = 1
         self.total_pages = self.modelCoVidStats.get_total_pages(PAGE_SIZE)
 
-        # Tạo bảng hiển thị dữ liệu
-        self.table = ttk.Treeview(tab_manage, columns=list(self.df.columns), show='headings')
         # Tabs
         notebook = ttk.Notebook(root)
         notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
+        # Tab 1: Manage Cases
         self.tab_manage = tk.Frame(notebook, bg="white")
         notebook.add(self.tab_manage, text="Quản lý ca bệnh")
         notebook.add(ttk.Frame(notebook), text="Tổng quan")
@@ -83,6 +66,7 @@ class CovidApp:
         notebook.add(ttk.Frame(notebook), text="Biểu đồ")
         notebook.add(ttk.Frame(notebook), text="Khác")
 
+    
         # Tiêu đề
         title = tk.Label(self.tab_manage, text="Quản Lý Số Ca Mắc COVID-19",
                          font=("Segoe UI", 22, "bold"), bg="white", fg="purple")
@@ -123,8 +107,8 @@ class CovidApp:
         self.sort_column.grid(row=0, column=18)
         tk.Checkbutton(tool_frame, text="Tăng dần").grid(row=0, column=19, padx=5)
 
-        self.total_label = tk.Label(tool_frame, text="")
-        self.total_label.grid(row=0, column=20, padx=(15, 0))
+        self.total_record = tk.Label(tool_frame, text="")
+        self.total_record.grid(row=0, column=20, padx=(15, 0))
 
         # Bảng
         self.table = ttk.Treeview(self.tab_manage, columns=list(self.df.columns), show='headings')
@@ -133,40 +117,7 @@ class CovidApp:
             self.table.column(col, width=110)
         self.table.pack(fill=tk.BOTH, expand=True)
 
-
-
-        # Action Buttons
-        btn_frame = tk.Frame(tab_manage)
-        btn_frame.pack(fill=tk.X, pady=4)
-
-        # Nút chuyển trang
-        self.page_label = tk.Label(btn_frame, text="", font=("Segoe UI", 12, "bold"))
-        self.page_label.pack(side=tk.LEFT, padx=6)
-        # Nút đi tới đầu trang
-        tk.Button(btn_frame, text="|<", command=self.first_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        # Nút trang trước
-        tk.Button(btn_frame, text="<", command=self.prev_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        # Nút trang sau
-        tk.Button(btn_frame, text=">", command=self.next_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        # Nút đi tới cuối trang
-        tk.Button(btn_frame, text=">|", command=self.last_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        
-        # Ô nhập số trang và nút chuyển trang
-        tk.Label(btn_frame, text="Tới trang:", font=("Segoe UI", 12)).pack(side=tk.LEFT, padx=2)
-        self.goto_entry = tk.Entry(btn_frame, width=5, font=("Segoe UI", 12))
-        self.goto_entry.pack(side=tk.LEFT)
-        tk.Button(btn_frame, text="Đi", command=self.goto_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-
-        # Thêm label tổng số bản ghi
-        self.total_record = tk.Label(btn_frame, text="", font=("Segoe UI", 12))
-        self.total_record.pack(side=tk.LEFT, padx=10)
-        # Nút thêm, sửa, xóa, lưu
-        tk.Button(btn_frame, text="Thêm", command=self.add_record, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_frame, text="Sửa", command=self.edit_record, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_frame, text="Xóa", command=self.delete_record, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_frame, text="Lưu", command=self.save_data, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-
-
+     
         self.refresh_table()
 
     def refresh_table(self):
