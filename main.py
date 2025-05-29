@@ -61,17 +61,15 @@ class CovidApp:
 
         # Tab 1: Manage Cases
         self.tab_manage = tk.Frame(notebook, bg="white")
-
-         self.tab_cleaning = TabCleaning(notebook, self.df)
+        self.tab_cleaning = TabCleaning(notebook, self.df)
         self.tab_cleaning.bind_tab_event(notebook)
+        
+        notebook.add(self.tab_manage, text="Quản lý ca bệnh")
         notebook.add(self.tab_cleaning, text="Làm sạch dữ liệu")
-        
-        
         self.tab_visualization = TabVisualization(notebook, self.df)
         
         # self.tab_visualization.bind_tab_event(notebook)
         notebook.add(self.tab_visualization, text="Biểu đồ")
-        notebook.add(self.tab_manage, text="Quản lý ca bệnh")
         notebook.add(ttk.Frame(notebook), text="Tổng quan")
         notebook.add(ttk.Frame(notebook), text="Phân tích")
         notebook.add(ttk.Frame(notebook), text="Khác")
@@ -207,7 +205,11 @@ class CovidApp:
         self.loader.save_data(self.modelCoVidStats.get_all())
         messagebox.showinfo("Lưu", "Đã lưu dữ liệu thành công.")
 
+def close_window(tk_window):
+    tk_window.destroy()
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = CovidApp(root)
+    root.protocol("WM_DELETE_WINDOW", lambda: close_window(root))
     root.mainloop()
