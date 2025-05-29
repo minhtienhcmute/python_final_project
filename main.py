@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 from covid_stats.data_loader import DataLoader
 from covid_stats.models import CovidStats
-from covid_stats.views.AddRecord import  RecordModal
+from covid_stats.views.AddRecord import RecordModal
 from covid_stats.views.clean_data import TabCleaning
 from covid_stats.views.draw_chart import TabVisualization
 DATA_FILE = "datasets/covid_19_clean_complete.csv"
@@ -13,12 +13,13 @@ class CovidApp:
         self.root = root
         self.root.title("COVID Data Manager (Paging & CRUD)")
         self.root.geometry("1200x600")
+        self.root.configure(bg="white")
 
-        # load data từ file CSV
+        # Load data
         self.loader = DataLoader(DATA_FILE)
         self.df = self.loader.load_data()
 
-        # Đổi tên các cột trong DataFrame sang tiếng Việt
+        # Đổi tên cột
         column_map = {
             'Province/State': 'Tỉnh/Bang',
             'Country/Region': 'Quốc gia/Vùng lãnh thổ',
@@ -31,16 +32,37 @@ class CovidApp:
             'Active': 'Đang điều trị',
             'WHO Region': 'Khu vực WHO'
         }
-        # tạo giao diện chính
-        self.root.configure(bg="white")
+        
+        #sắp xếp dữ liệu
+        # search_sort_frame = tk.Frame(tab_manage, bg="white")
+        # search_sort_frame.pack(fill=tk.X, padx=20, pady=5)
+        # tk.Label(search_sort_frame, text="Tìm kiếm:", font=("Segoe UI", 12), bg="white").pack(side=tk.LEFT)
+        # self.search_entry = tk.Entry(search_sort_frame, font=("Segoe UI", 12), width=20)
+        # self.search_entry.pack(side=tk.LEFT, padx=5)
+        # tk.Button(search_sort_frame, text="Tìm", font=("Segoe UI", 12), command=self.search_records).pack(side=tk.LEFT, padx=5)
+
+        # tk.Label(search_sort_frame, text="Sắp xếp theo:", font=("Segoe UI", 12), bg="white").pack(side=tk.LEFT, padx=10)
+        # self.sort_column = tk.StringVar()
+        # sort_options = list(self.df.columns)
+        # self.sort_column.set(sort_options[0])
+        # tk.OptionMenu(search_sort_frame, self.sort_column, *sort_options).pack(side=tk.LEFT)
+        # tk.Button(search_sort_frame, text="Tăng", font=("Segoe UI", 12), command=lambda: self.sort_records(True)).pack(side=tk.LEFT, padx=2)
+        # tk.Button(search_sort_frame, text="Giảm", font=("Segoe UI", 12), command=lambda: self.sort_records(False)).pack(side=tk.LEFT, padx=2)
+    
+        # Chuyển đổi tên cột
+        self.df.rename(columns=column_map, inplace=True)
+        self.modelCoVidStats = CovidStats(self.df)
+        self.page = 1
+        self.total_pages = self.modelCoVidStats.get_total_pages(PAGE_SIZE)
+
+        # Tabs
         notebook = ttk.Notebook(root)
         notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        notebook.add(ttk.Frame(notebook), text="Tổng quan")
-        notebook.add(ttk.Frame(notebook), text="Phân tích")
-        notebook.add(ttk.Frame(notebook), text="Khác")
-        
-        self.tab_cleaning = TabCleaning(notebook, self.df)
+        # Tab 1: Manage Cases
+        self.tab_manage = tk.Frame(notebook, bg="white")
+
+         self.tab_cleaning = TabCleaning(notebook, self.df)
         self.tab_cleaning.bind_tab_event(notebook)
         notebook.add(self.tab_cleaning, text="Làm sạch dữ liệu")
         
@@ -49,12 +71,15 @@ class CovidApp:
         
         # self.tab_visualization.bind_tab_event(notebook)
         notebook.add(self.tab_visualization, text="Biểu đồ")
-        
-        # Tab 1: Manage Cases
-        self.tab_manage = tk.Frame(notebook, bg="white")
         notebook.add(self.tab_manage, text="Quản lý ca bệnh")
-        title = tk.Label(self.tab_manage, text="Quản Lý Số Ca Mắc COVID-19", font=("Segoe UI", 22, "bold"),
-                         bg="white", fg="purple")
+        notebook.add(ttk.Frame(notebook), text="Tổng quan")
+        notebook.add(ttk.Frame(notebook), text="Phân tích")
+        notebook.add(ttk.Frame(notebook), text="Khác")
+		
+    
+        # Tiêu đề
+        title = tk.Label(self.tab_manage, text="Quản Lý Số Ca Mắc COVID-19",
+                         font=("Segoe UI", 22, "bold"), bg="white", fg="purple")
         title.pack(pady=15)
 
         # Toolbar
@@ -92,8 +117,8 @@ class CovidApp:
         self.sort_column.grid(row=0, column=18)
         tk.Checkbutton(tool_frame, text="Tăng dần").grid(row=0, column=19, padx=5)
 
-        self.total_label = tk.Label(tool_frame, text="")
-        self.total_label.grid(row=0, column=20, padx=(15, 0))
+        self.total_record = tk.Label(tool_frame, text="")
+        self.total_record.grid(row=0, column=20, padx=(15, 0))
 
         # Bảng
         self.table = ttk.Treeview(self.tab_manage, columns=list(self.df.columns), show='headings')
@@ -102,57 +127,21 @@ class CovidApp:
             self.table.column(col, width=110)
         self.table.pack(fill=tk.BOTH, expand=True)
 
+     
+        self.refresh_table()
 
+    def refresh_table(self):
+        for item in self.table.get_children():
+            self.table.delete(item)
+        page_df = self.modelCoVidStats.get_page(self.page, PAGE_SIZE)
+        for i, row in page_df.iterrows():
+            self.table.insert("", tk.END, values=list(row))
+        self.total_pages = self.modelCoVidStats.get_total_pages(PAGE_SIZE)
+        self.page_label.config(text=f"Trang {self.page}/{self.total_pages}")
+        # tổng số bản ghi
+        total_records = len(self.modelCoVidStats.get_all())
+        self.total_record.config(text=f"Tổng số bản ghi: {total_records}")
 
-        # Action Buttons
-        btn_frame = tk.Frame(self.tab_manage)
-        btn_frame.pack(fill=tk.X, pady=4)
-
-        # Nút chuyển trang
-        self.page_label = tk.Label(btn_frame, text="", font=("Segoe UI", 12, "bold"))
-        self.page_label.pack(side=tk.LEFT, padx=6)
-        # Nút đi tới đầu trang
-        tk.Button(btn_frame, text="|<", command=self.first_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        # Nút trang trước
-        tk.Button(btn_frame, text="<", command=self.prev_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        # Nút trang sau
-        tk.Button(btn_frame, text=">", command=self.next_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        # Nút đi tới cuối trang
-        tk.Button(btn_frame, text=">|", command=self.last_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        
-        # Ô nhập số trang và nút chuyển trang
-        tk.Label(btn_frame, text="Tới trang:", font=("Segoe UI", 12)).pack(side=tk.LEFT, padx=2)
-        self.goto_entry = tk.Entry(btn_frame, width=5, font=("Segoe UI", 12))
-        self.goto_entry.pack(side=tk.LEFT)
-        tk.Button(btn_frame, text="Đi", command=self.goto_page, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-
-        # Thêm label tổng số bản ghi
-        self.total_record = tk.Label(btn_frame, text="", font=("Segoe UI", 12))
-        self.total_record.pack(side=tk.LEFT, padx=10)
-        # Nút thêm, sửa, xóa, lưu
-        tk.Button(btn_frame, text="Thêm", command=self.add_record, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_frame, text="Sửa", command=self.edit_record, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_frame, text="Xóa", command=self.delete_record, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_frame, text="Lưu", command=self.save_data, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
-
-
-        # self.refresh_table()
-
-    # refresh_table sẽ làm mới bảng với dữ liệu hiện tại
-    # def refresh_table(self):
-    #     for item in self.table.get_children():
-    #         self.table.delete(item)
-    #     # page_df = self.modelCoVidStats.get_page(self.page, PAGE_SIZE)
-    #     page_df = self.modelCoVidStats.get_page(self.page, PAGE_SIZE)
-    #     for i, row in page_df.iterrows():
-    #         self.table.insert("", tk.END, values=list(row))
-    #     self.total_pages = self.modelCoVidStats.get_total_pages(PAGE_SIZE)
-    #     self.page_label.config(text=f"Trang {self.page}/{self.total_pages}")
-    #     # tổng số bản ghi
-    #     total_records = len(self.modelCoVidStats.get_all())
-    #     self.total_record.config(text=f"Tổng số bản ghi: {total_records}")
-    #     self.total_label.config(text=f"Tổng số: {total_records} dòng")
-		
     def first_page(self):
         self.page = 1
         self.refresh_table()
@@ -208,7 +197,6 @@ class CovidApp:
             return
         if not messagebox.askyesno("Xóa", f"Bạn có chắc muốn xóa {len(selected)} bản ghi?"):
             return
-        # Lấy index các dòng được chọn (theo thứ tự giảm dần để tránh lệch index khi xóa)
         idxs_in_page = [self.table.index(item) for item in selected]
         idxs = sorted([(self.page - 1) * PAGE_SIZE + idx for idx in idxs_in_page], reverse=True)
         for idx in idxs:
@@ -218,8 +206,6 @@ class CovidApp:
     def save_data(self):
         self.loader.save_data(self.modelCoVidStats.get_all())
         messagebox.showinfo("Lưu", "Đã lưu dữ liệu thành công.")
-        
-    
 
 if __name__ == "__main__":
     root = tk.Tk()
