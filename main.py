@@ -30,47 +30,63 @@ class CovidApp:
             'Active': 'Đang điều trị',
             'WHO Region': 'Khu vực WHO'
         }
-        
         # tạo giao diện chính
         self.root.configure(bg="white")
         notebook = ttk.Notebook(root)
         notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-
+        
+        notebook.add(ttk.Frame(notebook), text="Tổng quan")
+        notebook.add(ttk.Frame(notebook), text="Phân tích")
+        notebook.add(ttk.Frame(notebook), text="Biểu đồ")
+        notebook.add(ttk.Frame(notebook), text="Khác")
+        
         # Tab 1: Manage Cases
-        tab_manage = tk.Frame(notebook, bg="white")
-        notebook.add(tab_manage, text="Quản lý ca bệnh")
-        title = tk.Label(tab_manage, text="Quản Lý Số Ca Mắc COVID-19", font=("Segoe UI", 22, "bold"),
+        self.tab_manage = tk.Frame(notebook, bg="white")
+        notebook.add(self.tab_manage, text="Quản lý ca bệnh")
+        title = tk.Label(self.tab_manage, text="Quản Lý Số Ca Mắc COVID-19", font=("Segoe UI", 22, "bold"),
                          bg="white", fg="purple")
         title.pack(pady=15)
 
+        # Toolbar
+        tool_frame = tk.Frame(self.tab_manage)
+        tool_frame.pack(fill="x", pady=5)
 
-        tab_filter = tk.Frame(notebook, bg="white")
-        notebook.add(tab_filter, text="Lọc dữ liệu")
-        
-        #sắp xếp dữ liệu
-        # search_sort_frame = tk.Frame(tab_manage, bg="white")
-        # search_sort_frame.pack(fill=tk.X, padx=20, pady=5)
-        # tk.Label(search_sort_frame, text="Tìm kiếm:", font=("Segoe UI", 12), bg="white").pack(side=tk.LEFT)
-        # self.search_entry = tk.Entry(search_sort_frame, font=("Segoe UI", 12), width=20)
-        # self.search_entry.pack(side=tk.LEFT, padx=5)
-        # tk.Button(search_sort_frame, text="Tìm", font=("Segoe UI", 12), command=self.search_records).pack(side=tk.LEFT, padx=5)
+        tk.Button(tool_frame, text="Thêm mới", bg="lightgreen", command=self.add_record).grid(row=0, column=0, padx=4)
+        tk.Button(tool_frame, text="Sửa", bg="lightblue", command=self.edit_record).grid(row=0, column=1, padx=4)
+        tk.Button(tool_frame, text="Xóa", bg="tomato", command=self.delete_record).grid(row=0, column=2, padx=4)
+        tk.Button(tool_frame, text="Lưu", bg="orange", command=self.save_data).grid(row=0, column=3, padx=4)
 
-        # tk.Label(search_sort_frame, text="Sắp xếp theo:", font=("Segoe UI", 12), bg="white").pack(side=tk.LEFT, padx=10)
-        # self.sort_column = tk.StringVar()
-        # sort_options = list(self.df.columns)
-        # self.sort_column.set(sort_options[0])
-        # tk.OptionMenu(search_sort_frame, self.sort_column, *sort_options).pack(side=tk.LEFT)
-        # tk.Button(search_sort_frame, text="Tăng", font=("Segoe UI", 12), command=lambda: self.sort_records(True)).pack(side=tk.LEFT, padx=2)
-        # tk.Button(search_sort_frame, text="Giảm", font=("Segoe UI", 12), command=lambda: self.sort_records(False)).pack(side=tk.LEFT, padx=2)
-    
-        # Chuyển đổi tên cột
-        self.df.rename(columns=column_map, inplace=True)
-        self.modelCoVidStats = CovidStats(self.df)
-        self.page = 1
-        self.total_pages = self.modelCoVidStats.get_total_pages(PAGE_SIZE)
+        # nút
+        tk.Button(tool_frame, text="<<", command=self.first_page).grid(row=0, column=4, padx=(20, 2))
+        tk.Button(tool_frame, text="<", command=self.prev_page).grid(row=0, column=5)
+        self.page_label = tk.Label(tool_frame, text="")
+        self.page_label.grid(row=0, column=6, padx=5)
+        tk.Label(tool_frame, text="Đến trang:").grid(row=0, column=7)
+        self.goto_entry = tk.Entry(tool_frame, width=5)
+        self.goto_entry.grid(row=0, column=8)
+        tk.Button(tool_frame, text="Đi", command=self.goto_page).grid(row=0, column=9)
+        tk.Button(tool_frame, text=">", command=self.next_page).grid(row=0, column=10)
+        tk.Button(tool_frame, text=">>", command=self.last_page).grid(row=0, column=11)
 
-        # Tạo bảng hiển thị dữ liệu
-        self.table = ttk.Treeview(tab_manage, columns=list(self.df.columns), show='headings')
+        # Tìm kiếm và sắp xếp 
+        tk.Label(tool_frame, text="Tìm kiếm:").grid(row=0, column=12, padx=(30, 2))
+        tk.Label(tool_frame, text="Cột:").grid(row=0, column=13)
+        self.search_column = ttk.Combobox(tool_frame, values=[""], width=10)
+        self.search_column.grid(row=0, column=14)
+        self.search_entry = tk.Entry(tool_frame, width=20)
+        self.search_entry.grid(row=0, column=15, padx=5)
+        tk.Button(tool_frame, text="Tìm").grid(row=0, column=16)
+
+        tk.Label(tool_frame, text="Sắp xếp theo:").grid(row=0, column=17, padx=(20, 2))
+        self.sort_column = ttk.Combobox(tool_frame, values=[""], width=10)
+        self.sort_column.grid(row=0, column=18)
+        tk.Checkbutton(tool_frame, text="Tăng dần").grid(row=0, column=19, padx=5)
+
+        self.total_label = tk.Label(tool_frame, text="")
+        self.total_label.grid(row=0, column=20, padx=(15, 0))
+
+        # Bảng
+        self.table = ttk.Treeview(self.tab_manage, columns=list(self.df.columns), show='headings')
         for col in self.df.columns:
             self.table.heading(col, text=col)
             self.table.column(col, width=110)
@@ -79,7 +95,7 @@ class CovidApp:
 
 
         # Action Buttons
-        btn_frame = tk.Frame(tab_manage)
+        btn_frame = tk.Frame(self.tab_manage)
         btn_frame.pack(fill=tk.X, pady=4)
 
         # Nút chuyển trang
@@ -110,21 +126,23 @@ class CovidApp:
         tk.Button(btn_frame, text="Lưu", command=self.save_data, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
 
 
-        self.refresh_table()
+        # self.refresh_table()
 
-# refresh_table sẽ làm mới bảng với dữ liệu hiện tại
-    def refresh_table(self):
-        for item in self.table.get_children():
-            self.table.delete(item)
-        page_df = self.modelCoVidStats.get_page(self.page, PAGE_SIZE)
-        for i, row in page_df.iterrows():
-            self.table.insert("", tk.END, values=list(row))
-        self.total_pages = self.modelCoVidStats.get_total_pages(PAGE_SIZE)
-        self.page_label.config(text=f"Trang {self.page}/{self.total_pages}")
-        # tổng số bản ghi
-        total_records = len(self.modelCoVidStats.get_all())
-        self.total_record.config(text=f"Tổng số bản ghi: {total_records}")
-
+    # refresh_table sẽ làm mới bảng với dữ liệu hiện tại
+    # def refresh_table(self):
+    #     for item in self.table.get_children():
+    #         self.table.delete(item)
+    #     # page_df = self.modelCoVidStats.get_page(self.page, PAGE_SIZE)
+    #     page_df = self.modelCoVidStats.get_page(self.page, PAGE_SIZE)
+    #     for i, row in page_df.iterrows():
+    #         self.table.insert("", tk.END, values=list(row))
+    #     self.total_pages = self.modelCoVidStats.get_total_pages(PAGE_SIZE)
+    #     self.page_label.config(text=f"Trang {self.page}/{self.total_pages}")
+    #     # tổng số bản ghi
+    #     total_records = len(self.modelCoVidStats.get_all())
+    #     self.total_record.config(text=f"Tổng số bản ghi: {total_records}")
+    #     self.total_label.config(text=f"Tổng số: {total_records} dòng")
+		
     def first_page(self):
         self.page = 1
         self.refresh_table()
