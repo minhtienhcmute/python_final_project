@@ -1,0 +1,7 @@
+Province/State,Country/Region,Confirmed,Deaths,Recovered,Date
+unknown,hồ chí minh,100.0,1.0,50.0,2020-03-15
+hà nội,vietnam,50.0,0.0,76.0,2020-03-15
+unknown,unknown,200.0,5.0,150.0,2020-03-16
+đà nẵng,vietnam,104.0,0.0,30.0,2020-03-17
+bình dương,vietnam,80.0,1.0,70.0,1970-01-01
+hải phòng,vietnam,90.0,1.4,80.0,2020-03-18

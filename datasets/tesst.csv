@@ -1,0 +1,10 @@
+Province/State,Country/Region,Confirmed,Deaths,Recovered,Date
+,Hồ Chí Minh,100,1,50,2020-03-15
+Hà Nội,Vietnam,50,0,,2020-03-15
+Hà Nội,Vietnam,50,0,,2020-03-15
+,,200,5,150,2020-03-16
+Đà Nẵng,Vietnam,NaN,0,30,2020-03-17
+Bình Dương,Vietnam,80,1,70,invalid_date
+Hải Phòng,Vietnam,90,NaN,80,2020-03-18
+,,,
+,,,

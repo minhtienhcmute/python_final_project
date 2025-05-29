@@ -3,7 +3,8 @@ from tkinter import ttk, messagebox, simpledialog
 from covid_stats.data_loader import DataLoader
 from covid_stats.models import CovidStats
 from covid_stats.views.AddRecord import  RecordModal
-
+from covid_stats.views.clean_data import TabCleaning
+from covid_stats.views.draw_chart import TabVisualization
 DATA_FILE = "datasets/covid_19_clean_complete.csv"
 PAGE_SIZE = 20
 
@@ -34,11 +35,20 @@ class CovidApp:
         self.root.configure(bg="white")
         notebook = ttk.Notebook(root)
         notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
+
         notebook.add(ttk.Frame(notebook), text="Tổng quan")
         notebook.add(ttk.Frame(notebook), text="Phân tích")
-        notebook.add(ttk.Frame(notebook), text="Biểu đồ")
         notebook.add(ttk.Frame(notebook), text="Khác")
+        
+        self.tab_cleaning = TabCleaning(notebook, self.df)
+        self.tab_cleaning.bind_tab_event(notebook)
+        notebook.add(self.tab_cleaning, text="Làm sạch dữ liệu")
+        
+        
+        self.tab_visualization = TabVisualization(notebook, self.df)
+        
+        # self.tab_visualization.bind_tab_event(notebook)
+        notebook.add(self.tab_visualization, text="Biểu đồ")
         
         # Tab 1: Manage Cases
         self.tab_manage = tk.Frame(notebook, bg="white")
