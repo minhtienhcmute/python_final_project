@@ -10,7 +10,7 @@ class DataLoader:
             return df
         except Exception as e:
             print(f"Lỗi khi đọc dữ liệu: {e}")
-            return pd.DataFrame(columns=["date", "province", "cases"])
+            return pd.DataFrame()
 
     def save_data(self, df):
         try:
