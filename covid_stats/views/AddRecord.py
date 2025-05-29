@@ -22,6 +22,9 @@ class RecordModal(tk.Toplevel):
         btn_save.grid(row=len(columns), column=0, columnspan=2, pady=10)
 
     def save(self):
-        record = {col: entry.get() for col, entry in self.entries.items()}
-        self.on_save(record)
-        self.destroy()
+        record = {}
+        for col, entry in self.entries.items():
+            value = entry.get()  # Lấy dữ liệu người dùng nhập cho từng trường
+            record[col] = value  # Gán vào dict với key là tên trường
+        self.on_save(record)     # Gọi callback để xử lý dữ liệu
+        self.destroy()# Đóng cửa sổ modal

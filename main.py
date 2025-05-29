@@ -1,5 +1,7 @@
+import datetime
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
+from tkinter import filedialog
 from covid_stats.data_loader import DataLoader
 from covid_stats.models import CovidStats
 from covid_stats.views.AddRecord import RecordModal
@@ -14,12 +16,12 @@ class CovidApp:
         self.root.title("COVID Data Manager (Paging & CRUD)")
         self.root.geometry("1200x600")
         self.root.configure(bg="white")
-
-        # Load data
+        
         self.loader = DataLoader(DATA_FILE)
-        self.df = self.loader.load_data()
-
-        # Đổi tên cột
+        self.df = None
+        self.modelCoVidStats = None
+        self.page = 1
+        self.total_pages = 1
         column_map = {
             'Province/State': 'Tỉnh/Bang',
             'Country/Region': 'Quốc gia/Vùng lãnh thổ',
@@ -32,7 +34,8 @@ class CovidApp:
             'Active': 'Đang điều trị',
             'WHO Region': 'Khu vực WHO'
         }
-        
+        self.column_map = column_map  # Lưu lại để dùng khi mở file
+
         #sắp xếp dữ liệu
         # search_sort_frame = tk.Frame(tab_manage, bg="white")
         # search_sort_frame.pack(fill=tk.X, padx=20, pady=5)
@@ -48,12 +51,7 @@ class CovidApp:
         # tk.OptionMenu(search_sort_frame, self.sort_column, *sort_options).pack(side=tk.LEFT)
         # tk.Button(search_sort_frame, text="Tăng", font=("Segoe UI", 12), command=lambda: self.sort_records(True)).pack(side=tk.LEFT, padx=2)
         # tk.Button(search_sort_frame, text="Giảm", font=("Segoe UI", 12), command=lambda: self.sort_records(False)).pack(side=tk.LEFT, padx=2)
-    
-        # Chuyển đổi tên cột
-        self.df.rename(columns=column_map, inplace=True)
-        self.modelCoVidStats = CovidStats(self.df)
-        self.page = 1
-        self.total_pages = self.modelCoVidStats.get_total_pages(PAGE_SIZE)
+
 
         # Tabs
         notebook = ttk.Notebook(root)
@@ -61,15 +59,17 @@ class CovidApp:
 
         # Tab 1: Manage Cases
         self.tab_manage = tk.Frame(notebook, bg="white")
+
         self.tab_cleaning = TabCleaning(notebook, self.df)
         self.tab_cleaning.bind_tab_event(notebook)
-        
-        notebook.add(self.tab_manage, text="Quản lý ca bệnh")
         notebook.add(self.tab_cleaning, text="Làm sạch dữ liệu")
+        
+        
         self.tab_visualization = TabVisualization(notebook, self.df)
         
         # self.tab_visualization.bind_tab_event(notebook)
         notebook.add(self.tab_visualization, text="Biểu đồ")
+        notebook.add(self.tab_manage, text="Quản lý ca bệnh")
         notebook.add(ttk.Frame(notebook), text="Tổng quan")
         notebook.add(ttk.Frame(notebook), text="Phân tích")
         notebook.add(ttk.Frame(notebook), text="Khác")
@@ -90,45 +90,71 @@ class CovidApp:
         tk.Button(tool_frame, text="Lưu", bg="orange", command=self.save_data).grid(row=0, column=3, padx=4)
 
         # nút
-        tk.Button(tool_frame, text="<<", command=self.first_page).grid(row=0, column=4, padx=(20, 2))
-        tk.Button(tool_frame, text="<", command=self.prev_page).grid(row=0, column=5)
+        tk.Button(tool_frame, text="<<", command=self.first_page).grid(row=0, column=6, padx=(20, 2))
+        tk.Button(tool_frame, text="<", command=self.prev_page).grid(row=0, column=7)
         self.page_label = tk.Label(tool_frame, text="")
-        self.page_label.grid(row=0, column=6, padx=5)
-        tk.Label(tool_frame, text="Đến trang:").grid(row=0, column=7)
+        self.page_label.grid(row=0, column=8, padx=5)
+        tk.Label(tool_frame, text="Đến trang:").grid(row=0, column=9)
         self.goto_entry = tk.Entry(tool_frame, width=5)
-        self.goto_entry.grid(row=0, column=8)
-        tk.Button(tool_frame, text="Đi", command=self.goto_page).grid(row=0, column=9)
-        tk.Button(tool_frame, text=">", command=self.next_page).grid(row=0, column=10)
-        tk.Button(tool_frame, text=">>", command=self.last_page).grid(row=0, column=11)
+        self.goto_entry.grid(row=0, column=10)
+        tk.Button(tool_frame, text="Đi", command=self.goto_page).grid(row=0, column=11)
+        tk.Button(tool_frame, text=">", command=self.next_page).grid(row=0, column=12)
+        tk.Button(tool_frame, text=">>", command=self.last_page).grid(row=0, column=13)
 
         # Tìm kiếm và sắp xếp 
-        tk.Label(tool_frame, text="Tìm kiếm:").grid(row=0, column=12, padx=(30, 2))
-        tk.Label(tool_frame, text="Cột:").grid(row=0, column=13)
+        tk.Label(tool_frame, text="Tìm kiếm:").grid(row=0, column=14, padx=(30, 2))
+        tk.Label(tool_frame, text="Cột:").grid(row=0, column=15)
         self.search_column = ttk.Combobox(tool_frame, values=[""], width=10)
-        self.search_column.grid(row=0, column=14)
+        self.search_column.grid(row=0, column=16)
         self.search_entry = tk.Entry(tool_frame, width=20)
-        self.search_entry.grid(row=0, column=15, padx=5)
-        tk.Button(tool_frame, text="Tìm").grid(row=0, column=16)
+        self.search_entry.grid(row=0, column=17, padx=5)
+        tk.Button(tool_frame, text="Tìm").grid(row=0, column=18)
 
-        tk.Label(tool_frame, text="Sắp xếp theo:").grid(row=0, column=17, padx=(20, 2))
+        tk.Label(tool_frame, text="Sắp xếp theo:").grid(row=0, column=19, padx=(20, 2))
         self.sort_column = ttk.Combobox(tool_frame, values=[""], width=10)
-        self.sort_column.grid(row=0, column=18)
-        tk.Checkbutton(tool_frame, text="Tăng dần").grid(row=0, column=19, padx=5)
+        self.sort_column.grid(row=0, column=20)
+        tk.Checkbutton(tool_frame, text="Tăng dần").grid(row=0, column=21, padx=5)
 
         self.total_record = tk.Label(tool_frame, text="")
-        self.total_record.grid(row=0, column=20, padx=(15, 0))
+        self.total_record.grid(row=0, column=22, padx=(15, 0))
 
+        tk.Button(tool_frame, text="Export", bg="lightyellow", command=self.export_data).grid(row=0, column=4, padx=4)
+        tk.Button(tool_frame, text="Mở file", bg="lightcyan", command=self.open_file).grid(row=0, column=5, padx=4)
         # Bảng
-        self.table = ttk.Treeview(self.tab_manage, columns=list(self.df.columns), show='headings')
-        for col in self.df.columns:
-            self.table.heading(col, text=col)
-            self.table.column(col, width=110)
+        self.table = ttk.Treeview(self.tab_manage, columns=[], show='headings')
         self.table.pack(fill=tk.BOTH, expand=True)
 
      
         self.refresh_table()
 
+    def open_file(self):
+        file_path = filedialog.askopenfilename(
+            filetypes=[("CSV files", "*.csv")],
+            title="Chọn file CSV để mở"
+        )
+        if file_path:
+            self.loader.filepath = file_path
+            self.df = self.loader.load_data()
+            self.df.rename(columns=self.column_map, inplace=True)
+            self.modelCoVidStats = CovidStats(self.df)
+            self.page = 1
+            self.total_pages = self.modelCoVidStats.get_total_pages(PAGE_SIZE)
+            # Tạo lại bảng với cột mới
+            self.table.destroy()
+            self.table = ttk.Treeview(self.tab_manage, columns=list(self.df.columns), show='headings')
+            for col in self.df.columns:
+                self.table.heading(col, text=col)
+                self.table.column(col, width=110)
+            self.table.pack(fill=tk.BOTH, expand=True)
+            self.refresh_table()
+            messagebox.showinfo("Mở file", f"Đã nạp dữ liệu từ file:\n{file_path}")
     def refresh_table(self):
+        if not self.modelCoVidStats:
+            for item in self.table.get_children():
+                self.table.delete(item)
+            self.page_label.config(text="Trang 0/0")
+            self.total_record.config(text="Tổng số bản ghi: 0")
+            return
         for item in self.table.get_children():
             self.table.delete(item)
         page_df = self.modelCoVidStats.get_page(self.page, PAGE_SIZE)
@@ -136,7 +162,6 @@ class CovidApp:
             self.table.insert("", tk.END, values=list(row))
         self.total_pages = self.modelCoVidStats.get_total_pages(PAGE_SIZE)
         self.page_label.config(text=f"Trang {self.page}/{self.total_pages}")
-        # tổng số bản ghi
         total_records = len(self.modelCoVidStats.get_all())
         self.total_record.config(text=f"Tổng số bản ghi: {total_records}")
 
@@ -170,7 +195,31 @@ class CovidApp:
             messagebox.showwarning("Trang", "Vui lòng nhập số trang hợp lệ.")
 
     def add_record(self):
+        # Hàm xử lý khi lưu bản ghi mới
         def on_save(record):
+            #kiểm tra
+            if not record.get("Quốc gia/Vùng lãnh thổ", "").strip():
+                messagebox.showwarning("Thiếu thông tin", "Bạn phải nhập Quốc gia/Vùng lãnh thổ!")
+                return
+            ca_xac_nhan = record.get("Ca xác nhận", "").strip()
+            if not ca_xac_nhan.isdigit() or int(ca_xac_nhan) < 0:
+                messagebox.showwarning("Sai dữ liệu", "Ca xác nhận phải là số nguyên không âm!")
+                return
+            ngay = record.get("Ngày", "").strip()
+            try:
+                date_request = datetime.datetime.strptime(ngay, "%Y-%m-%d")
+                time_now = datetime.datetime.now()
+                if not (2020 <= date_request.year <= time_now.year):
+                    messagebox.showwarning("Sai năm", f"Năm phải từ 2020 đến {time_now.year}!")
+                    return
+                # Nếu là năm hiện tại thì không cho nhập ngày lớn hơn ngày hôm nay
+                if date_request.year == time_now.year and date_request > time_now:
+                    messagebox.showwarning("Sai ngày", "Không được nhập ngày lớn hơn thời điểm hiện tại!")
+                    return
+            except ValueError:
+                messagebox.showwarning("Sai định dạng", "Ngày phải hợp lệ và theo định dạng yyyy-MM-dd!")
+                return
+
             self.modelCoVidStats.add_record(record)
             self.refresh_table()
         RecordModal(self.root, self.df.columns, on_save)
@@ -204,12 +253,22 @@ class CovidApp:
     def save_data(self):
         self.loader.save_data(self.modelCoVidStats.get_all())
         messagebox.showinfo("Lưu", "Đã lưu dữ liệu thành công.")
-
-def close_window(tk_window):
-    tk_window.destroy()
+        
+    def export_data(self):
+        # Hỏi người dùng nơi lưu file
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            title="Chọn nơi lưu file xuất dữ liệu"
+        )
+        if file_path:
+            try:
+                self.modelCoVidStats.get_all().to_csv(file_path, index=False)
+                messagebox.showinfo("Export", f"Đã xuất dữ liệu ra file:\n{file_path}")
+            except Exception as e:
+                messagebox.showerror("Export", f"Lỗi khi xuất dữ liệu:\n{e}")
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = CovidApp(root)
-    root.protocol("WM_DELETE_WINDOW", lambda: close_window(root))
     root.mainloop()
