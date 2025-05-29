@@ -1,5 +1,7 @@
+import datetime
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
+from tkinter import filedialog
 from covid_stats.data_loader import DataLoader
 from covid_stats.models import CovidStats
 from covid_stats.views.AddRecord import RecordModal
@@ -110,6 +112,7 @@ class CovidApp:
         self.total_record = tk.Label(tool_frame, text="")
         self.total_record.grid(row=0, column=20, padx=(15, 0))
 
+        tk.Button(tool_frame, text="Export", bg="lightyellow", command=self.export_data).grid(row=0, column=4, padx=4)
         # Bảng
         self.table = ttk.Treeview(self.tab_manage, columns=list(self.df.columns), show='headings')
         for col in self.df.columns:
@@ -162,7 +165,28 @@ class CovidApp:
             messagebox.showwarning("Trang", "Vui lòng nhập số trang hợp lệ.")
 
     def add_record(self):
+        # Hàm xử lý khi lưu bản ghi mới
         def on_save(record):
+            #kiểm tra
+            if not record.get("Quốc gia/Vùng lãnh thổ", "").strip():
+                messagebox.showwarning("Thiếu thông tin", "Bạn phải nhập Quốc gia/Vùng lãnh thổ!")
+                return
+            ca_xac_nhan = record.get("Ca xác nhận", "").strip()
+            if not ca_xac_nhan.isdigit() or int(ca_xac_nhan) < 0:
+                messagebox.showwarning("Sai dữ liệu", "Ca xác nhận phải là số nguyên không âm!")
+                return
+            ngay = record.get("Ngày", "").strip()
+            try:
+                date_obj = datetime.datetime.strptime(ngay, "%Y-%m-%d")
+                year = date_obj.year
+                time_now = datetime.datetime.now()
+                if not (2020 <= year <= time_now):
+                    messagebox.showwarning("Sai năm", "Năm phải từ 2020 đến 2025!")
+                    return
+            except ValueError:
+                messagebox.showwarning("Sai định dạng", "Ngày phải hợp lệ và theo định dạng yyyy-MM-dd!")
+                return
+
             self.modelCoVidStats.add_record(record)
             self.refresh_table()
         RecordModal(self.root, self.df.columns, on_save)
@@ -196,6 +220,20 @@ class CovidApp:
     def save_data(self):
         self.loader.save_data(self.modelCoVidStats.get_all())
         messagebox.showinfo("Lưu", "Đã lưu dữ liệu thành công.")
+        
+    def export_data(self):
+        # Hỏi người dùng nơi lưu file
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            title="Chọn nơi lưu file xuất dữ liệu"
+        )
+        if file_path:
+            try:
+                self.modelCoVidStats.get_all().to_csv(file_path, index=False)
+                messagebox.showinfo("Export", f"Đã xuất dữ liệu ra file:\n{file_path}")
+            except Exception as e:
+                messagebox.showerror("Export", f"Lỗi khi xuất dữ liệu:\n{e}")
 
 if __name__ == "__main__":
     root = tk.Tk()
