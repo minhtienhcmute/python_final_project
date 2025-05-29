@@ -30,19 +30,20 @@ class CovidApp:
             'Active': 'Đang điều trị',
             'WHO Region': 'Khu vực WHO'
         }
-            self.tab_manage = tk.Frame(notebook, bg="white")
         # tạo giao diện chính
         self.root.configure(bg="white")
         notebook = ttk.Notebook(root)
         notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-   		notebook.add(ttk.Frame(notebook), text="Tổng quan")
+        
+        notebook.add(ttk.Frame(notebook), text="Tổng quan")
         notebook.add(ttk.Frame(notebook), text="Phân tích")
         notebook.add(ttk.Frame(notebook), text="Biểu đồ")
         notebook.add(ttk.Frame(notebook), text="Khác")
+        
         # Tab 1: Manage Cases
-        tab_manage = tk.Frame(notebook, bg="white")
-        notebook.add(tab_manage, text="Quản lý ca bệnh")
-        title = tk.Label(tab_manage, text="Quản Lý Số Ca Mắc COVID-19", font=("Segoe UI", 22, "bold"),
+        self.tab_manage = tk.Frame(notebook, bg="white")
+        notebook.add(self.tab_manage, text="Quản lý ca bệnh")
+        title = tk.Label(self.tab_manage, text="Quản Lý Số Ca Mắc COVID-19", font=("Segoe UI", 22, "bold"),
                          bg="white", fg="purple")
         title.pack(pady=15)
 
@@ -94,7 +95,7 @@ class CovidApp:
 
 
         # Action Buttons
-        btn_frame = tk.Frame(tab_manage)
+        btn_frame = tk.Frame(self.tab_manage)
         btn_frame.pack(fill=tk.X, pady=4)
 
         # Nút chuyển trang
@@ -125,21 +126,22 @@ class CovidApp:
         tk.Button(btn_frame, text="Lưu", command=self.save_data, bg="white", font=("Segoe UI", 12, "bold")).pack(side=tk.LEFT, padx=2)
 
 
-        self.refresh_table()
+        # self.refresh_table()
 
-# refresh_table sẽ làm mới bảng với dữ liệu hiện tại
-    def refresh_table(self):
-        for item in self.table.get_children():
-            self.table.delete(item)
-        page_df = self.modelCoVidStats.get_page(self.page, PAGE_SIZE)
-        for i, row in page_df.iterrows():
-            self.table.insert("", tk.END, values=list(row))
-        self.total_pages = self.modelCoVidStats.get_total_pages(PAGE_SIZE)
-        self.page_label.config(text=f"Trang {self.page}/{self.total_pages}")
-        # tổng số bản ghi
-        total_records = len(self.modelCoVidStats.get_all())
-        self.total_record.config(text=f"Tổng số bản ghi: {total_records}")
-		self.total_label.config(text=f"Tổng số: {total_records} dòng")
+    # refresh_table sẽ làm mới bảng với dữ liệu hiện tại
+    # def refresh_table(self):
+    #     for item in self.table.get_children():
+    #         self.table.delete(item)
+    #     # page_df = self.modelCoVidStats.get_page(self.page, PAGE_SIZE)
+    #     page_df = self.modelCoVidStats.get_page(self.page, PAGE_SIZE)
+    #     for i, row in page_df.iterrows():
+    #         self.table.insert("", tk.END, values=list(row))
+    #     self.total_pages = self.modelCoVidStats.get_total_pages(PAGE_SIZE)
+    #     self.page_label.config(text=f"Trang {self.page}/{self.total_pages}")
+    #     # tổng số bản ghi
+    #     total_records = len(self.modelCoVidStats.get_all())
+    #     self.total_record.config(text=f"Tổng số bản ghi: {total_records}")
+    #     self.total_label.config(text=f"Tổng số: {total_records} dòng")
 		
     def first_page(self):
         self.page = 1
