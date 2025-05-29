@@ -1,5 +1,4 @@
-Province/State,Country/Region,Confirmed,Deaths,Recovered,Date
-unknown,hồ chí minh,100.0,1.0,50.0,2020-03-15
+Tỉnh/Bang,Quốc gia/Vùng lãnh thổ,Ca xác nhận,Tử vong,Hồi phục,Ngày
 hà nội,vietnam,50.0,0.0,76.0,2020-03-15
 unknown,unknown,200.0,5.0,150.0,2020-03-16
 đà nẵng,vietnam,104.0,0.0,30.0,2020-03-17
