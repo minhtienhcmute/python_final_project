@@ -102,13 +102,17 @@ class CovidApp:
         tk.Button(tool_frame, text=">>", command=self.last_page).grid(row=0, column=13)
 
         # Tìm kiếm và sắp xếp 
-        tk.Label(tool_frame, text="Tìm kiếm:").grid(row=0, column=14, padx=(30, 2))
-        tk.Label(tool_frame, text="Cột:").grid(row=0, column=15)
-        self.search_column = ttk.Combobox(tool_frame, values=[""], width=10)
-        self.search_column.grid(row=0, column=16)
+        # Tìm kiếm theo cột (sử dụng column_map)
+        tk.Label(tool_frame, text="Tìm kiếm:", font=("Segoe UI", 10)).grid(row=0, column=14, padx=(30, 2), sticky="e")
+
+        tk.Label(tool_frame, text="Cột:", font=("Segoe UI", 10)).grid(row=0, column=15, sticky="e")
+        self.search_column = ttk.Combobox(tool_frame, values=list(self.column_map.values()), width=20, state="readonly")
+        self.search_column.grid(row=0, column=16, padx=2)
+        self.search_column.set(list(self.column_map.values())[0])
         self.search_entry = tk.Entry(tool_frame, width=20)
         self.search_entry.grid(row=0, column=17, padx=5)
-        tk.Button(tool_frame, text="Tìm").grid(row=0, column=18)
+        tk.Button(tool_frame, text="Tìm", command=self.search_records).grid(row=0, column=18, padx=2)
+
 
         tk.Label(tool_frame, text="Sắp xếp theo:").grid(row=0, column=19, padx=(20, 2))
         self.sort_column = ttk.Combobox(tool_frame, values=[""], width=10)
@@ -164,6 +168,26 @@ class CovidApp:
         self.page_label.config(text=f"Trang {self.page}/{self.total_pages}")
         total_records = len(self.modelCoVidStats.get_all())
         self.total_record.config(text=f"Tổng số bản ghi: {total_records}")
+
+    def search_records(self):
+        search_value = self.search_entry.get().strip()
+        search_column_vn = self.search_column.get()
+
+        if not search_value:
+            messagebox.showwarning("Tìm kiếm", "Vui lòng nhập giá trị để tìm kiếm.")
+            return
+
+        if search_column_vn not in self.df.columns:
+            messagebox.showwarning("Tìm kiếm", "Cột tìm kiếm không hợp lệ.")
+            return
+
+        filtered_df = self.df[self.df[search_column_vn].str.contains(search_value, case=False, na=False)]
+
+        self.modelCoVidStats = CovidStats(filtered_df)
+        self.total_pages = self.modelCoVidStats.get_total_pages(PAGE_SIZE)
+        self.refresh_table()
+        
+    
 
     def first_page(self):
         self.page = 1
