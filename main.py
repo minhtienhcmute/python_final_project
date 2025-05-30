@@ -105,6 +105,7 @@ class CovidApp:
         # Tìm kiếm theo cột (sử dụng column_map)
         tk.Label(tool_frame, text="Tìm kiếm:", font=("Segoe UI", 10)).grid(row=0, column=14, padx=(30, 2), sticky="e")
 
+
         tk.Label(tool_frame, text="Cột:", font=("Segoe UI", 10)).grid(row=0, column=15, sticky="e")
         self.search_column = ttk.Combobox(tool_frame, values=list(self.column_map.values()), width=20, state="readonly")
         self.search_column.grid(row=0, column=16, padx=2)
@@ -114,13 +115,13 @@ class CovidApp:
         tk.Button(tool_frame, text="Tìm", command=self.search_records).grid(row=0, column=18, padx=2)
 
 
-        tk.Label(tool_frame, text="Sắp xếp theo:").grid(row=0, column=19, padx=(20, 2))
+        tk.Button(tool_frame, text="Tăng", command=lambda: self.sort_records(True)).grid(row=0, column=21, padx=2)
+        tk.Button(tool_frame, text="Giảm", command=lambda: self.sort_records(False)).grid(row=0, column=22, padx=2)
         self.sort_column = ttk.Combobox(tool_frame, values=[""], width=10)
-        self.sort_column.grid(row=0, column=20)
-        tk.Checkbutton(tool_frame, text="Tăng dần").grid(row=0, column=21, padx=5)
+        self.sort_column.grid(row=0, column=23)
 
         self.total_record = tk.Label(tool_frame, text="")
-        self.total_record.grid(row=0, column=22, padx=(15, 0))
+        self.total_record.grid(row=0, column=24, padx=(15, 0))
 
         tk.Button(tool_frame, text="Export", bg="lightyellow", command=self.export_data).grid(row=0, column=4, padx=4)
         tk.Button(tool_frame, text="Mở file", bg="lightcyan", command=self.open_file).grid(row=0, column=5, padx=4)
@@ -128,8 +129,10 @@ class CovidApp:
         self.table = ttk.Treeview(self.tab_manage, columns=[], show='headings')
         self.table.pack(fill=tk.BOTH, expand=True)
 
-     
-        self.refresh_table()
+        
+
+
+        # self.refresh_table()
 
     def open_file(self):
         file_path = filedialog.askopenfilename(
@@ -150,6 +153,9 @@ class CovidApp:
                 self.table.heading(col, text=col)
                 self.table.column(col, width=110)
             self.table.pack(fill=tk.BOTH, expand=True)
+            self.sort_column['values'] = list(self.df.columns)
+            if len(self.df.columns) > 0:
+                self.sort_column.set(self.df.columns[0])
             self.refresh_table()
             messagebox.showinfo("Mở file", f"Đã nạp dữ liệu từ file:\n{file_path}")
     def refresh_table(self):
@@ -273,6 +279,18 @@ class CovidApp:
         for idx in idxs:
             self.modelCoVidStats.delete_record(idx)
         self.refresh_table()
+
+    def sort_records(self, ascending=True):
+        col = self.sort_column.get()
+        if not col or not self.modelCoVidStats:
+            return
+        # Sắp xếp DataFrame hiện tại
+        sorted_df = self.modelCoVidStats.get_all().sort_values(by=col, ascending=ascending)
+        self.modelCoVidStats = CovidStats(sorted_df)
+        self.page = 1
+        self.total_pages = self.modelCoVidStats.get_total_pages(PAGE_SIZE)
+        self.refresh_table()
+
 
     def save_data(self):
         self.loader.save_data(self.modelCoVidStats.get_all())
