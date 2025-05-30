@@ -16,10 +16,17 @@ class TabVisualization(ttk.Frame):
         if self.dataframe is not None:
             self.update_available_regions()
 
+    def update_dataframe(self, df: pd.DataFrame):
+        """
+        Cập nhật DataFrame và làm mới danh sách khu vực có sẵn.
+        """
+        self.dataframe = df
+        self.update_available_regions()
+
+        
     def create_widgets(self):
         tk.Label(self, text="Biểu đồ trực quan hóa dữ liệu", font=("Segoe UI", 14, "bold")).pack(pady=10)
 
-        # Buttons
         button_frame = tk.Frame(self)
         button_frame.pack(pady=5)
 
@@ -29,7 +36,6 @@ class TabVisualization(ttk.Frame):
         # ttk.Button(button_frame, text="Biểu đồ cột chồng", command=self.plot_stacked_bar_chart).grid(row=0, column=3, padx=4)
         ttk.Button(button_frame, text="Biểu đồ khu vực", command=self.plot_area_chart).grid(row=0, column=4, padx=4)
 
-        # Filter
         filter_frame = tk.Frame(self)
         filter_frame.pack(pady=5)
         tk.Label(filter_frame, text="Chọn quốc gia/vùng lãnh thổ:").pack(side="left", padx=(0, 5))
@@ -37,7 +43,6 @@ class TabVisualization(ttk.Frame):
         self.region_combobox.pack(side="left")
         self.region_combobox.bind("<<ComboboxSelected>>", self.on_region_selected)
 
-        # Canvas
         self.canvas_frame = tk.Frame(self)
         self.canvas_frame.pack(fill="both", expand=True)
 

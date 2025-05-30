@@ -36,43 +36,28 @@ class CovidApp:
         }
         self.column_map = column_map  # Lưu lại để dùng khi mở file
 
-        #sắp xếp dữ liệu
-        # search_sort_frame = tk.Frame(tab_manage, bg="white")
-        # search_sort_frame.pack(fill=tk.X, padx=20, pady=5)
-        # tk.Label(search_sort_frame, text="Tìm kiếm:", font=("Segoe UI", 12), bg="white").pack(side=tk.LEFT)
-        # self.search_entry = tk.Entry(search_sort_frame, font=("Segoe UI", 12), width=20)
-        # self.search_entry.pack(side=tk.LEFT, padx=5)
-        # tk.Button(search_sort_frame, text="Tìm", font=("Segoe UI", 12), command=self.search_records).pack(side=tk.LEFT, padx=5)
-
-        # tk.Label(search_sort_frame, text="Sắp xếp theo:", font=("Segoe UI", 12), bg="white").pack(side=tk.LEFT, padx=10)
-        # self.sort_column = tk.StringVar()
-        # sort_options = list(self.df.columns)
-        # self.sort_column.set(sort_options[0])
-        # tk.OptionMenu(search_sort_frame, self.sort_column, *sort_options).pack(side=tk.LEFT)
-        # tk.Button(search_sort_frame, text="Tăng", font=("Segoe UI", 12), command=lambda: self.sort_records(True)).pack(side=tk.LEFT, padx=2)
-        # tk.Button(search_sort_frame, text="Giảm", font=("Segoe UI", 12), command=lambda: self.sort_records(False)).pack(side=tk.LEFT, padx=2)
-
-
+        
         # Tabs
-        notebook = ttk.Notebook(root)
-        notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.notebook = ttk.Notebook(root)
+        self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        # Tab 1: Manage Cases
-        self.tab_manage = tk.Frame(notebook, bg="white")
+        # Tab 1: 
+    
+        self.tab_manage = tk.Frame(self.notebook, bg="white")
 
-        self.tab_cleaning = TabCleaning(notebook, self.df)
-        self.tab_cleaning.bind_tab_event(notebook)
-        notebook.add(self.tab_cleaning, text="Làm sạch dữ liệu")
+        self.tab_cleaning = TabCleaning(self.notebook, self.df)
+        self.tab_cleaning.bind_tab_event(self.notebook)
+        self.notebook.add(self.tab_cleaning, text="Làm sạch dữ liệu")
         
         
-        self.tab_visualization = TabVisualization(notebook, self.df)
+        self.tab_visualization = TabVisualization(self.notebook, self.df)
         
         # self.tab_visualization.bind_tab_event(notebook)
-        notebook.add(self.tab_visualization, text="Biểu đồ")
-        notebook.add(self.tab_manage, text="Quản lý ca bệnh")
-        notebook.add(ttk.Frame(notebook), text="Tổng quan")
-        notebook.add(ttk.Frame(notebook), text="Phân tích")
-        notebook.add(ttk.Frame(notebook), text="Khác")
+        self.notebook.add(self.tab_visualization, text="Biểu đồ")
+        self.notebook.add(self.tab_manage, text="Quản lý ca bệnh")
+        self.notebook.add(ttk.Frame(self.notebook), text="Tổng quan")
+        self.notebook.add(ttk.Frame(self.notebook), text="Phân tích")
+        self.notebook.add(ttk.Frame(self.notebook), text="Khác")
 		
     
         # Tiêu đề
@@ -156,6 +141,8 @@ class CovidApp:
             self.sort_column['values'] = list(self.df.columns)
             if len(self.df.columns) > 0:
                 self.sort_column.set(self.df.columns[0])
+
+            self.tab_visualization.update_dataframe(self.df)
             self.refresh_table()
             messagebox.showinfo("Mở file", f"Đã nạp dữ liệu từ file:\n{file_path}")
     def refresh_table(self):
@@ -175,6 +162,8 @@ class CovidApp:
         total_records = len(self.modelCoVidStats.get_all())
         self.total_record.config(text=f"Tổng số bản ghi: {total_records}")
 
+
+# Hàm tìm kiếm bản ghi
     def search_records(self):
         search_value = self.search_entry.get().strip()
         search_column_vn = self.search_column.get()
@@ -280,6 +269,7 @@ class CovidApp:
             self.modelCoVidStats.delete_record(idx)
         self.refresh_table()
 
+# Hàm sắp xếp bản ghi
     def sort_records(self, ascending=True):
         col = self.sort_column.get()
         if not col or not self.modelCoVidStats:
