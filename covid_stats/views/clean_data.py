@@ -12,21 +12,21 @@ class TabCleaning(ttk.Frame):
         self.cleaning_options = {
             "autofill_missing": tk.BooleanVar(value=True),
             "remove_duplicates": tk.BooleanVar(value=True),
-            "standardize_case": tk.BooleanVar(value=True),
-            "convert_date": tk.BooleanVar(value=True),
+            # "standardize_case": tk.BooleanVar(value=True),
+            # "convert_date": tk.BooleanVar(value=True),
             # "drop_unused_columns": tk.BooleanVar(value=False),
         }
         self.create_widgets()
 
     def create_widgets(self):
-        tk.Label(self, text="Tùy chọn làm sạch dữ liệu", font=("Segoe UI", 14, "bold")).pack(pady=10)
+        tk.Label(self, text="Tùy chọn làm sạch dữ liệu", font=("Segoe UI", 14, "#000")).pack(pady=10)
 
         for key, var in self.cleaning_options.items():
             label = {
                 "autofill_missing": "Tự động điền dữ liệu bị khuyết (NaN)",
                 "remove_duplicates": "Xóa dữ liệu trùng lặp",
-                "standardize_case": "Chuẩn hóa chữ hoa/thường",
-                "convert_date": "Chuyển định dạng ngày (nếu có cột ngày)",
+                # "standardize_case": "Chuẩn hóa chữ hoa/thường",
+                # "convert_date": "Chuyển định dạng ngày (nếu có cột ngày)",
                 # "drop_unused_columns": "Loại bỏ cột không cần thiết (cột toàn NaN)"
             }.get(key, key)
 
@@ -96,24 +96,24 @@ class TabCleaning(ttk.Frame):
             msg_lines.append("Không kiểm tra dòng trùng lặp.")
 
         # 3. Kiểm tra lỗi ngày (nếu chọn)
-        if self.cleaning_options["convert_date"].get():
-            date_issues = []
-            for col in df.columns:
-                if "date" in col.lower():
-                    try:
-                        converted = pd.to_datetime(df[col], errors='coerce')
-                        n_invalid = converted.isna().sum()
-                        if n_invalid > 0:
-                            date_issues.append(f"{col} ({n_invalid} giá trị không đúng định dạng)")
-                    except Exception:
-                        date_issues.append(f"{col} (lỗi khi chuyển đổi ngày tháng)")
-            msg_lines.append("\nCác cột ngày có lỗi định dạng:")
-            if date_issues:
-                msg_lines += date_issues
-            else:
-                msg_lines.append("Không có lỗi định dạng ngày.")
-        else:
-            msg_lines.append("Không kiểm tra định dạng ngày.")
+        # if self.cleaning_options["convert_date"].get():
+        #     date_issues = []
+        #     for col in df.columns:
+        #         if "date" in col.lower():
+        #             try:
+        #                 converted = pd.to_datetime(df[col], errors='coerce')
+        #                 n_invalid = converted.isna().sum()
+        #                 if n_invalid > 0:
+        #                     date_issues.append(f"{col} ({n_invalid} giá trị không đúng định dạng)")
+        #             except Exception:
+        #                 date_issues.append(f"{col} (lỗi khi chuyển đổi ngày tháng)")
+        #     msg_lines.append("\nCác cột ngày có lỗi định dạng:")
+        #     if date_issues:
+        #         msg_lines += date_issues
+        #     else:
+        #         msg_lines.append("Không có lỗi định dạng ngày.")
+        # else:
+        #     msg_lines.append("Không kiểm tra định dạng ngày.")
 
         # 4. Kiểm tra cột toàn NaN (nếu chọn)
         # if self.cleaning_options["drop_unused_columns"].get():
@@ -155,14 +155,14 @@ class TabCleaning(ttk.Frame):
             if self.cleaning_options["remove_duplicates"].get():
                 df.drop_duplicates(inplace=True)
 
-            if self.cleaning_options["standardize_case"].get():
-                for col in df.select_dtypes(include='object').columns:
-                    df[col] = df[col].astype(str).str.strip().str.lower()
+            # if self.cleaning_options["standardize_case"].get():
+            #     for col in df.select_dtypes(include='object').columns:
+            #         df[col] = df[col].astype(str).str.strip().str.lower()
 
-            if self.cleaning_options["convert_date"].get():
-                for col in df.columns:
-                    if 'date' in col.lower():
-                        df[col] = pd.to_datetime(df[col], errors='coerce')
+            # if self.cleaning_options["convert_date"].get():
+            #     for col in df.columns:
+            #         if 'date' in col.lower():
+            #             df[col] = pd.to_datetime(df[col], errors='coerce')
 
             # if self.cleaning_options["drop_unused_columns"].get():
             #     df.dropna(axis=1, how='all', inplace=True)
