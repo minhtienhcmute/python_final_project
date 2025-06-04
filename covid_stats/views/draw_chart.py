@@ -31,10 +31,10 @@ class TabVisualization(ttk.Frame):
         button_frame.pack(pady=5)
 
         ttk.Button(button_frame, text="Thống kê tỷ lệ các ca Covid-19 ngày mới nhất", command=self.plot_pie_chart).grid(row=0, column=0, padx=4)
-        # ttk.Button(button_frame, text="Biểu đồ đường", command=self.plot_line_chart).grid(row=0, column=1, padx=4)
+        ttk.Button(button_frame, text="Biểu đồ khu vực", command=self.plot_line_chart).grid(row=0, column=1, padx=4)
         ttk.Button(button_frame, text="Thống kê top 10 quốc gia có số ca xác nhận nhiều nhất", command=self.plot_bar_chart).grid(row=0, column=2, padx=4)
-        # ttk.Button(button_frame, text="Biểu đồ cột chồng", command=self.plot_stacked_bar_chart).grid(row=0, column=3, padx=4)
-        # ttk.Button(button_frame, text="Biểu đồ khu vực", command=self.plot_area_chart).grid(row=0, column=4, padx=4)
+        ttk.Button(button_frame, text="Biểu đồ cột chồng", command=self.plot_stacked_bar_chart).grid(row=0, column=3, padx=4)
+        ttk.Button(button_frame, text="Biểu đồ khu vực", command=self.plot_area_chart).grid(row=0, column=4, padx=4)
 
         filter_frame = tk.Frame(self)
         filter_frame.pack(pady=5)

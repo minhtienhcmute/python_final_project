@@ -19,7 +19,7 @@ class TabCleaning(ttk.Frame):
         self.create_widgets()
 
     def create_widgets(self):
-        tk.Label(self, text="Tùy chọn làm sạch dữ liệu", font=("Segoe UI", 14, "#000")).pack(pady=10)
+        tk.Label(self, text="Tùy chọn làm sạch dữ liệu", font=("Segoe UI", 14)).pack(pady=10)
 
         for key, var in self.cleaning_options.items():
             label = {
